@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회의 프로그램</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f9f9f9;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .left-section {
+      flex: 1;
+      padding: 30px;
+    }
+
+    button {
+      background-color: #d36d8c;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #c05570;
+    }
+
+    .right-section {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .additional-text {
+      font-size: 43px;
+      color: #777777;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+  <script>
+    function startMeeting() {
+      var confirmed = confirm("회의를 시작하시겠습니까?");
+      if (confirmed) {
+        window.location.href = "login_page.html";
+      }
+    }
+  </script>
+</head>
+<body>
+<div class="left-section">
+  <button onclick="startMeeting()">Start</button>
+</div>
+<div class="right-section">
+  <div class="additional-text">셍성AI를 통해 효율적인 회의를 시작해보세요</div>
+</div>
+</body>
+</html>

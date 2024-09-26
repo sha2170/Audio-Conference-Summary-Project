@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>메인 화상 회의</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .navbar {
+      background-color: #f7d284;
+      color: rgb(235, 153, 47);
+      padding: 10px;
+      text-align: center;
+    }
+    main {
+      display: flex;
+      flex: 1;
+    }
+    .left-section, .center-section, .right-section {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .left-section {
+      background-color: #f0f0f0;
+      width: 20%;
+      position: relative;
+    }
+    .center-section {
+      background-color: #fff8e2;
+      width: 40%;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .right-section {
+      background-color: #f0f0f0;
+      width: 40%;
+      padding-left: 5px;
+    }
+    .timer {
+      position: absolute;
+      top: 10px;
+      left: 25px;
+      color: #333;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .buttons-container {
+      margin-top: 50px;
+    }
+    .code-share, .start-btn, .end-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 10px;
+      width: 100%;
+      text-align: center;
+    }
+    .code-share {
+      background-color: #3498db;
+      color: white;
+    }
+    .start-btn {
+      background-color: #2ecc71;
+      color: white;
+    }
+    .end-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+    .meeting-title {
+      background-color: #ff8b06;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .long-box {
+      background-color: #fff8e2;
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .long-box h3 {
+      margin-top: 0;
+    }
+    .summary-section {
+      margin-top: 20px;
+    }
+  </style>
+
+  <!-- SockJS 및 STOMP 라이브러리 로드 -->
+  <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+  <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      // WebSocket 연결 설정
+      const socket = new SockJS('/ws');
+      const stompClient = Stomp.over(socket);
+
+      stompClient.connect({}, function (frame) {
+        console.log('Connected: ' + frame);
+
+        // 회의 시작 이벤트 구독
+        stompClient.subscribe('/topic/meeting_started', function (message) {
+          console.log('Meeting started event received: ' + message.body);
+          startRecording();  // 음성 인식 기능 시작
+        });
+
+        // 회의 종료 이벤트 구독
+        stompClient.subscribe('/topic/meeting_ended', function (message) {
+          console.log('Meeting ended event received: ' + message.body);
+          stopRecording();  // 음성 인식 기능 종료
+        });
+
+        // 실시간 텍스트 처리 구독
+        stompClient.subscribe('/topic/transcription', function (message) {
+          const transcriptionDiv = document.getElementById('summary');
+          transcriptionDiv.innerHTML += `<p>${message.body}</p>`;
+        });
+      });
+
+      // 회의 시작 버튼 클릭 시 WebSocket 메시지 전송
+      document.getElementById('startMeeting').addEventListener('click', () => {
+        console.log('Start meeting button clicked');
+        stompClient.send("/app/start_meeting", {}, JSON.stringify({}));
+      });
+
+      // 회의 종료 버튼 클릭 시 WebSocket 메시지 전송 및 서버로 요약 요청
+      document.getElementById('endMeeting').addEventListener('click', () => {
+        const fullText = document.getElementById('summary').innerText;
+
+        // 서버로 요약 요청 보내기
+        fetch('/summarize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ text: fullText })
+        })
+                .then(response => response.json())
+                .then(data => {
+                  const summaryTextDiv = document.getElementById('summaryText');
+                  summaryTextDiv.innerText = "요약 내용: " + data.summary;
+
+                  const keywordsDiv = document.getElementById('keywords');
+                  keywordsDiv.innerHTML = "<strong>주요 키워드:</strong> " + data.keywords.map(keyword => keyword[0]).join(', ');
+
+                  const sentimentDiv = document.getElementById('sentiment');
+                  sentimentDiv.innerHTML = "<strong>감정 분석 결과:</strong> " + data.sentiment;
+                })
+                .catch(error => {
+                  console.error('요약 요청 중 오류 발생:', error);
+                });
+      });
+    });
+  </script>
+</head>
+<body>
+<div class="navbar">
+  <h1>셍성AI</h1>
+</div>
+<main>
+  <div class="left-section">
+    <div class="timer" id="timer">00:00:00</div>
+    <div class="buttons-container">
+      <button class="code-share">코드 공유</button>
+      <button class="start-btn" id="startMeeting">회의 시작</button>
+      <button class="end-btn" id="endMeeting">종료하기</button>
+    </div>
+  </div>
+  <div class="center-section">
+    <div class="meeting-title">
+      <h2>회의명: 캡스톤 최종 발표</h2>
+    </div>
+    <div class="long-box" id="summary">
+      <!-- 실시간 텍스트 반환 -->
+    </div>
+  </div>
+  <div class="right-section">
+    <div class="long-box">
+      <h3>주요 키워드</h3>
+      <div id="keywords"></div> <!-- 주요 키워드를 표시할 공간 -->
+      <h3>요약 내용</h3>
+      <div id="summaryText" class="summary-section"></div> <!-- 요약 내용을 표시할 공간 -->
+      <h3>감정 분석 결과</h3>
+      <div id="sentiment"></div> <!-- 감정 분석 결과를 표시할 공간 -->
+    </div>
+  </div>
+</main>
+</body>
+</html>

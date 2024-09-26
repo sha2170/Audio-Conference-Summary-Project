@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+    form {
+      width: 280px;
+      height: 250px;
+      margin: auto;
+      font-size: 15px;
+    }
+    input[type="text"], input[type="password"] {
+      width: 250px;
+      height: 32px;
+      font-size: 15px;
+      border: 0;
+      border-radius: 15px;
+      outline: none;
+      padding-left: 10px;
+      background-color: rgb(233,233,233);
+    }
+    .navbar {
+      width: 100%;
+      background-color: #f7d284;
+      color: white;
+      padding: 10px 0;
+      text-align: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .navbar-left {
+      display: flex;
+      align-items: center;
+    }
+    .navbar-right {
+      display: flex;
+      align-items: center;
+    }
+    .btn {
+      width: 263px;
+      height: 32px;
+      font-size: 15px;
+      border: 0;
+      border-radius: 15px;
+      outline: none;
+      padding-left: 10px;
+      background-color: indianred;
+    }
+    .btn:active {
+      width: 263px;
+      height: 32px;
+      font-size: 15px;
+      border: 0;
+      border-radius: 15px;
+      outline: none;
+      padding-left: 10px;
+      background-color: indianred;
+    }
+    a {
+      font-size: 12px;
+      color: darkgray;
+      text-decoration-line: none;
+    }
+    .join {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="navbar">
+  <div class="navbar-left">
+    셍성AI
+  </div>
+</div>
+<form id="loginForm">
+  <table>
+    <tr>
+      <td><h2>로그인</h2></td>
+    </tr>
+    <tr>
+      <td><input type="text" id="loginId" placeholder="ID"></td>
+    </tr>
+    <tr>
+      <td><input type="password" id="loginPassword" placeholder="Password"></td>
+    </tr>
+    <tr>
+      <td><input type="checkbox"> 로그인 정보 저장</td>
+    </tr>
+    <tr>
+      <td><input type="submit" value="Sign in" class="btn"></td>
+    </tr>
+    <tr>
+      <td class="join"><a href="signup.html">회원가입</a></td>
+    </tr>
+  </table>
+</form>
+<script>
+  document.getElementById('loginForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var loginId = document.getElementById('loginId').value;
+    var loginPassword = document.getElementById('loginPassword').value;
+    var storedId = localStorage.getItem('userId');
+    var storedPassword = localStorage.getItem('userPassword');
+    var storedName = localStorage.getItem('userName');
+    if (loginId === storedId && loginPassword === storedPassword) {
+      alert('로그인 성공!');
+      window.location.href = 'create.html?name=' + encodeURIComponent(storedName);
+    } else {
+      alert('로그인 실패. 아이디 또는 비밀번호를 확인하세요.');
+    }
+  });
+</script>
+</body>
+</html>

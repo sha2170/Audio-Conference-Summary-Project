@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>화상 회의 방 만들기</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f9f9f9;
+            font-family: Arial, sans-serif;
+        }
+
+        .navbar {
+            width: 100%;
+            background-color: #f7d284;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .logout-btn {
+            background-color: #c5558d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 80px 30px 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #f194c8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="navbar-left">
+        셍성AI
+    </div>
+    <div class="navbar-right">
+        <button onclick="goHome()">HOME</button>
+        <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    </div>
+</div>
+
+<!-- 메인 컨테이너 -->
+<div class="container">
+    <h2>회의의 이름을 입력해 주세요</h2>
+    <input type="text" id="meetingName" placeholder="회의 이름을 입력하세요">
+    <div>
+        <button onclick="startMeeting()">회의 시작</button>
+        <button onclick="closeWindow()">창 닫기</button>
+    </div>
+</div>
+
+<script>
+    function startMeeting() {
+        var meetingName = document.getElementById("meetingName").value;
+        if (meetingName.trim() === "") {
+            alert("회의 이름을 입력해주세요!");
+        } else {
+            var targetUrl = "index.html?meetingName=" + encodeURIComponent(meetingName);
+            window.location.href = targetUrl;
+        }
+    }
+
+    function closeWindow() {
+        // 창 닫음
+        window.close();
+    }
+
+    function goHome() {
+        window.location.href = "start_page.html";
+    }
+
+    function logout() {
+        // 로그아웃 페이지 연결
+        // 여기에 로그아웃 기능을 추가하세요
+    }
+</script>
+</body>
+</html>
