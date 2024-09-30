@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>메인 화상 회의</title>
+  <title>메인 회의</title>
   <style>
     body {
       margin: 0;
@@ -12,264 +12,262 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      background-color: #f5f5f5;
     }
+
     .navbar {
-      background-color: #f7d284;
-      color: rgb(235, 153, 47);
-      padding: 10px;
-      text-align: center;
+      background-color: #A7C7E7;
+      color: white;
+      padding: 20px;
+      text-align: left;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: bold;
+      margin-bottom: 20px;
     }
+
+    .navbar h1 {
+      font-size: 36px;
+      color: white;
+      margin: 0;
+      letter-spacing: -1px;
+    }
+
+    .navbar span {
+      font-size: 14px;
+      color: white;
+      margin-left: 10px;
+      font-weight: normal;
+    }
+
+    .navbar .description {
+      font-size: 16px;
+      color: #ffe3f7;
+      margin-left: 5px;
+      font-weight: normal;
+    }
+
+    .meeting-title-bar {
+      background-color: #d8d8f8;
+      padding: 10px;
+      text-align: left;
+      font-size: 24px;
+      color: #333;
+      font-weight: bold;
+      border-bottom: 2px solid #e6e6e6;
+    }
+
+
     main {
       display: flex;
       flex: 1;
+      background-color: #e6e6e6;
     }
-    .left-section, .center-section, .right-section {
+
+    .left-section {
+      background-color: #D9EAF7;
+      width: 20%;
       padding: 20px;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      color: #333;
+      border-radius: 15px;
     }
-    .left-section {
-      background-color: #f0f0f0;
-      width: 20%;
-      position: relative;
-    }
+
     .center-section {
-      background-color: #fff8e2;
-      width: 40%;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
+      background-color: #fff;
+      width: 60%;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin: 0 auto;
     }
+
     .right-section {
       background-color: #f0f0f0;
-      width: 40%;
-      padding-left: 5px;
+      width: 20%;
+      padding: 20px;
     }
+
     .timer {
-      position: absolute;
-      top: 10px;
-      left: 25px;
-      color: #333;
+      font-size: 24px;
       font-weight: bold;
-      font-size: 18px;
+      margin-bottom: 20px;
     }
+
     .buttons-container {
-      margin-top: 50px;
-    }
-    .code-share, .start-btn, .end-btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       width: 100%;
-      text-align: center;
     }
+
+    .code-share, .start-btn, .end-btn {
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+
     .code-share {
-      background-color: #3498db;
+      background-color: #5DADE2;
       color: white;
     }
     .start-btn {
-      background-color: #2ecc71;
+      background-color: #0047AB;
       color: white;
     }
+
     .end-btn {
-      background-color: #e74c3c;
+      background-color: #5DADE2;
       color: white;
     }
-    .meeting-title {
-      background-color: #ff8b06;
-      color: white;
+
+    .meeting-title-bar {
+      background-color: #D9EAF7;
       padding: 10px;
-      text-align: center;
+      text-align: left;
+      font-size: 24px;
+      color: #333;
+      font-weight: bold;
+      border-bottom: 2px solid #e6e6e6;
+      border-radius: 15px;
+    }
+
+    .real-time-text {
+      width: 100%;
+      height: 400px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 15px;
+      overflow-y: auto;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      font-size: 16px;
+      color: #333;
+    }
+
+    .text-box {
+      width: 100%;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 10px;
       margin-bottom: 20px;
     }
-    .long-box {
-      background-color: #fff8e2;
-      padding: 20px;
-      flex: 1;
-      overflow-y: auto;
-    }
-    .long-box h3 {
-      margin-top: 0;
-    }
-    .summary-section {
-      margin-top: 20px;
-    }
   </style>
-
-  <!-- SockJS 및 STOMP 라이브러리 로드 -->
-  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-
-
-  <script>
-    let recognition;
-
-    document.addEventListener('DOMContentLoaded', (event) => {
-      // WebSocket 연결 설정
-      const socket = new SockJS('/ws');
-      const stompClient = Stomp.over(socket);
-
-      stompClient.connect({}, function (frame) {
-        console.log('Connected: ' + frame);
-
-        // 회의 시작 이벤트 구독
-        stompClient.subscribe('/topic/meeting_started', function (message) {
-          console.log('Meeting started event received: ' + message.body);
-          startSpeechRecognition();  // 음성 인식 기능 시작
-        });
-
-        // 회의 종료 이벤트 구독
-        stompClient.subscribe('/topic/meeting_ended', function (message) {
-          console.log('Meeting ended event received: ' + message.body);
-          stopSpeechRecognition();  // 음성 인식 기능 종료
-        });
-
-        // 실시간 텍스트 처리 구독
-        stompClient.subscribe('/topic/transcription', function (message) {
-          const transcriptionDiv = document.getElementById('summary');
-          transcriptionDiv.innerHTML += `<p>${message.body}</p>`;
-        });
-      });
-
-      // 회의 시작 버튼 클릭 시 WebSocket 메시지 전송
-      document.getElementById('startMeeting').addEventListener('click', () => {
-        console.log('Start meeting button clicked');
-        stompClient.send("/app/start_meeting", {}, JSON.stringify({}));
-
-        // 마이크 권한 요청 및 음성 인식 시작
-        navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function(stream) {
-                  console.log("마이크 권한이 허용되었습니다.");
-                  startSpeechRecognition();
-                })
-                .catch(function(err) {
-                  console.error("마이크 권한이 거부되었습니다:", err);
-                  alert('마이크 권한이 필요합니다. 브라우저 설정에서 마이크 권한을 확인하세요.');
-                });
-      });
-
-
-
-
-      // 회의 종료 버튼 클릭 시 WebSocket 메시지 전송 및 서버로 요약 요청
-      document.getElementById('endMeeting').addEventListener('click', () => {
-        const fullText = document.getElementById('summary').innerText;
-
-        // 서버로 요약 요청 보내기
-        fetch('/summarize', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ text: fullText })
-        })
-                .then(response => response.json())
-                .then(data => {
-                  const summaryTextDiv = document.getElementById('summaryText');
-                  summaryTextDiv.innerText = "요약 내용: " + data.summary;
-
-                  const keywordsDiv = document.getElementById('keywords');
-                  keywordsDiv.innerHTML = "<strong>주요 키워드:</strong> " + data.keywords.map(keyword => keyword[0]).join(', ');
-
-                  const sentimentDiv = document.getElementById('sentiment');
-                  sentimentDiv.innerHTML = "<strong>감정 분석 결과:</strong> " + data.sentiment;
-                })
-                .catch(error => {
-                  console.error('요약 요청 중 오류 발생:', error);
-                });
-      });
-
-      // 음성 인식을 시작하는 함수
-      function startSpeechRecognition() {
-        if (!('webkitSpeechRecognition' in window)) {
-          alert('이 브라우저는 음성 인식 기능을 지원하지 않습니다.');
-          return;
-        }
-
-        recognition = new webkitSpeechRecognition();
-        recognition.lang = 'ko-KR';  // 한국어 설정
-        recognition.interimResults = true;  // 중간 결과도 반환
-        recognition.continuous = true;  // 지속적으로 음성 인식
-
-        // 음성 인식 시작
-        recognition.start();
-        console.log("음성 인식이 시작되었습니다.");
-
-        // 실시간으로 결과를 화면에 표시하는 부분
-        recognition.onresult = (event) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
-
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            let transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript;  // 확정된 결과
-            } else {
-              interimTranscript += transcript;  // 중간 결과
-            }
-          }
-
-          // 중간 결과와 확정된 결과를 각각 표시
-          document.getElementById('summary').innerHTML = `<p>${finalTranscript}</p><p style="color: grey;">${interimTranscript}</p>`;
-        };
-
-        // 음성 인식 오류 처리
-        recognition.onerror = (event) => {
-          console.error('음성 인식 오류 발생:', event.error);
-        };
-
-        // 음성 인식 종료 이벤트
-        recognition.onend = () => {
-          console.log('음성 인식이 종료되었습니다.');
-        };
-      }
-
-
-
-      // 음성 인식을 중지하는 함수
-      function stopSpeechRecognition() {
-        if (recognition) {
-          recognition.stop();
-          console.log('음성 인식이 중지되었습니다.');
-        }
-      }
-    });
-  </script>
 </head>
 <body>
+
 <div class="navbar">
-  <h1>셍성AI</h1>
+  <h1>SENGSUNG</h1>
 </div>
+
 <main>
+  <!-- 왼쪽 섹션 -->
   <div class="left-section">
-    <div class="timer" id="timer">00:00:00</div>
+    <div class="timer" id="timer">00:00</div>
+
     <div class="buttons-container">
       <button class="code-share">코드 공유</button>
       <button class="start-btn" id="startMeeting">회의 시작</button>
       <button class="end-btn" id="endMeeting">종료하기</button>
     </div>
+
   </div>
+
+  <!-- 중앙 섹션 (실시간 텍스트 변환) -->
   <div class="center-section">
     <div class="meeting-title">
-      <h2>회의명: 캡스톤 최종 발표</h2>
+      <h2></h2> <!-- 회의명 : 텍스트 -->
     </div>
-    <div class="long-box" id="summary">
-      <!-- 실시간 텍스트 반환 -->
+
+    <!-- 실시간 텍스트 변환 영역 -->
+    <div class="real-time-text" id="realTimeText">
+      <!-- 음성 인식 텍스트가 여기에 표시됩니다 -->
     </div>
   </div>
+
+  <!-- 오른쪽 섹션 -->
   <div class="right-section">
-    <div class="long-box">
-      <h3>주요 키워드</h3>
-      <div id="keywords"></div> <!-- 주요 키워드를 표시할 공간 -->
-      <h3>요약 내용</h3>
-      <div id="summaryText" class="summary-section"></div> <!-- 요약 내용을 표시할 공간 -->
-      <h3>감정 분석 결과</h3>
-      <div id="sentiment"></div> <!-- 감정 분석 결과를 표시할 공간 -->
+    <div class="text-box">
+      <h3>요약된 내용</h3>
+      <p>실시간 회의 요약이 여기에 표시됩니다.</p>
     </div>
   </div>
 </main>
+
+<script>
+  let recognition;
+  let accumulatedTranscript = '';  // 전체 텍스트를 저장하는 변수
+  let summaryUpdateInterval;  // 주기적으로 요약 요청을 보낼 타이머
+
+  // 음성 인식을 시작하는 함수
+  function startSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('이 브라우저는 음성 인식 기능을 지원하지 않습니다.');
+      return;
+    }
+
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = 'ko-KR';  // 한국어 설정
+    recognition.interimResults = true;  // 중간 결과도 반환
+    recognition.continuous = true;  // 지속적으로 음성 인식
+
+    // 음성 인식 시작
+    recognition.start();
+    console.log("음성 인식이 시작되었습니다.");
+
+    // 실시간 텍스트 변환 이벤트 처리
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        let transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;  // 확정된 결과
+        } else {
+          interimTranscript += transcript;  // 중간 결과
+        }
+      }
+
+      accumulatedTranscript += finalTranscript;  // 전체 텍스트 누적
+      document.getElementById('realTimeText').innerHTML = `<p>${accumulatedTranscript}</p><p style="color: grey;">${interimTranscript}</p>`;
+    };
+
+    // 음성 인식 오류 처리
+    recognition.onerror = (event) => {
+      console.error('음성 인식 오류 발생:', event.error);
+    };
+
+    // 음성 인식 종료 이벤트 (계속 재시작하게 설정)
+    recognition.onend = () => {
+      console.log('음성 인식이 종료되었습니다.');
+      recognition.start();  // 음성 인식을 다시 시작
+    };
+  }
+
+  // "회의 시작" 버튼을 클릭하면 음성 인식 시작
+  document.getElementById('startMeeting').addEventListener('click', () => {
+    startSpeechRecognition();
+  });
+
+  // "종료하기" 버튼을 클릭하면 음성 인식 종료
+  document.getElementById('endMeeting').addEventListener('click', () => {
+    if (recognition) {
+      recognition.stop();
+      console.log("음성 인식이 중지되었습니다.");
+    }
+  });
+
+</script>
+
+
 </body>
 </html>
+
+
+
